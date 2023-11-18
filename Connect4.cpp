@@ -2,9 +2,10 @@
 #include "Connect4.h"
 #include <iostream>
 
-Connect4::Connect4() {
+Connect4::Connect4(int gameMode, int difficulty) : gameMode(gameMode), difficulty(difficulty) {
     initializeBoard();
 }
+
 
 void Connect4::initializeBoard() {
     for (int i = 0; i < 6; ++i) {
@@ -140,46 +141,66 @@ int Connect4::evaluateBoard() {
 }
 
 int Connect4::minimax(int depth, bool isMaximizingPlayer, int alpha, int beta) {
+    int maxDepth;
+    switch (difficulty) {
+        case 1: // Fácil
+            maxDepth = 2;
+            break;
+        case 2: // Medio
+            maxDepth = 4;
+            break;
+        case 3: // Difícil
+            maxDepth = 5;
+            break;
+        default:
+            maxDepth = 6; // Valor por defecto
+    }
+    if (depth >= maxDepth) {
+        return evaluateBoard();
+    }
+
     int score = evaluateBoard();
+    if (score == 1000 || score == -1000) return score;
+    if (!isMovesLeft()) return 0;
+    
 
     if (score == 1000 || score == -1000) return score;
     if (!isMovesLeft()) return 0;
 
     if (isMaximizingPlayer) {
         int best = -10000;
-
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 7; j++) {
                 if (board[i][j] == ' ') {
                     board[i][j] = 'X';
                     int val = minimax(depth + 1, false, alpha, beta);
+                    board[i][j] = ' ';
                     best = std::max(best, val);
                     alpha = std::max(alpha, best);
-
-                    board[i][j] = ' ';
-                    if (beta <= alpha) break; // Poda alfa-beta
+                    if (beta <= alpha)
+                        break;
                 }
             }
         }
         return best;
     } else {
         int best = 10000;
-
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 7; j++) {
                 if (board[i][j] == ' ') {
                     board[i][j] = 'O';
                     int val = minimax(depth + 1, true, alpha, beta);
+                    board[i][j] = ' ';
                     best = std::min(best, val);
                     beta = std::min(beta, best);
-
-                    board[i][j] = ' ';
-                    if (beta <= alpha) break; // Poda alfa-beta
+                    if (beta <= alpha)
+                        break;
                 }
             }
         }
         return best;
     }
+
 }
 
 
@@ -222,7 +243,7 @@ void Connect4::playGame() {
     while (!gameEnded && movesCount < 42) { // 6 filas * 7 columnas = 42 posiciones
         displayBoard();
 
-        if (currentPlayer == 'X') {
+        if (gameMode == 1 || (gameMode == 2 && currentPlayer == 'X')) {
             // Jugador humano
             std::cout << "Jugador " << currentPlayer << ", elige una columna (0-6): ";
             std::cin >> column;
@@ -232,7 +253,7 @@ void Connect4::playGame() {
                 std::cout << "Movimiento inválido. Inténtalo de nuevo." << std::endl;
                 continue; // Salta al siguiente ciclo del bucle si el movimiento es inválido
             }
-        } else {
+        } else if (gameMode == 2 && currentPlayer == 'O') {
             // IA (Minimax)
             std::cout << "Turno de la IA." << std::endl;
             column = findBestMove();
@@ -254,5 +275,6 @@ void Connect4::playGame() {
         }
     }
 }
+
 
 // Otros métodos que puedas necesitar

@@ -5,13 +5,15 @@
 
 class Connect4 {
 public:
-    Connect4(); // Constructor
+    Connect4();
+    Connect4(int gameMode, int difficulty = 0);  // Constructor
     void playGame(); // Método para iniciar el juego
     void setDifficulty(int level); // Establecer la dificultad del juego
     void saveGame(const std::string& filename); // Guardar el estado del juego
     void loadGame(const std::string& filename); // Cargar el estado del juego
 
 private:
+    int gameMode; //Selecion para IA o Coop
     char board[6][7]; // Tablero de 6x7
     int difficulty; // Nivel de dificultad (1=fácil, 2=medio, 3=difícil)
     void initializeBoard(); // Inicializar el tablero
