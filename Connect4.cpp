@@ -2,7 +2,8 @@
 #include "Connect4.h"
 #include <iostream>
 
-Connect4::Connect4(int gameMode, int difficulty) : gameMode(gameMode), difficulty(difficulty) {
+Connect4::Connect4(int gameMode, int difficulty, bool useAlphaBeta) 
+    : gameMode(gameMode), difficulty(difficulty), useAlphaBetaPruning(useAlphaBeta) {
     initializeBoard();
 }
 
@@ -129,6 +130,7 @@ bool Connect4::checkWin(char piece) {
 }
 */
 
+
 int Connect4::evaluateBoard() {
     // Retorna un valor alto si 'X' gana, bajo si 'O' gana, y 0 para empate o juego no terminado
     if (checkWin('X')) {
@@ -167,7 +169,7 @@ int Connect4::minimax(int depth, bool isMaximizingPlayer, int alpha, int beta) {
     if (score == 1000 || score == -1000) return score;
     if (!isMovesLeft()) return 0;
 
-    if (isMaximizingPlayer) {
+   if (isMaximizingPlayer) {
         int best = -10000;
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 7; j++) {
@@ -176,9 +178,11 @@ int Connect4::minimax(int depth, bool isMaximizingPlayer, int alpha, int beta) {
                     int val = minimax(depth + 1, false, alpha, beta);
                     board[i][j] = ' ';
                     best = std::max(best, val);
-                    alpha = std::max(alpha, best);
-                    if (beta <= alpha)
-                        break;
+                    if (useAlphaBetaPruning) {
+                        alpha = std::max(alpha, best);
+                        if (beta <= alpha)
+                            break;
+                    }
                 }
             }
         }
@@ -192,9 +196,11 @@ int Connect4::minimax(int depth, bool isMaximizingPlayer, int alpha, int beta) {
                     int val = minimax(depth + 1, true, alpha, beta);
                     board[i][j] = ' ';
                     best = std::min(best, val);
-                    beta = std::min(beta, best);
-                    if (beta <= alpha)
-                        break;
+                    if (useAlphaBetaPruning) {
+                        beta = std::min(beta, best);
+                        if (beta <= alpha)
+                            break;
+                    }
                 }
             }
         }
@@ -232,6 +238,13 @@ int Connect4::findBestMove() {
     }
     return bestMove;
 }
+
+
+
+void Connect4::enableAlphaBetaPruning(bool enable) {
+    useAlphaBetaPruning = enable;
+}
+
 
 
 void Connect4::playGame() {

@@ -6,12 +6,12 @@
 class Connect4 {
 public:
     Connect4();
-    Connect4(int gameMode, int difficulty = 0);  // Constructor
+    Connect4(int gameMode, int difficulty, bool useAlphaBeta = true);
+    void enableAlphaBetaPruning(bool enable);
     void playGame(); // Método para iniciar el juego
     void setDifficulty(int level); // Establecer la dificultad del juego
     void saveGame(const std::string& filename); // Guardar el estado del juego
     void loadGame(const std::string& filename); // Cargar el estado del juego
-
 private:
     int gameMode; //Selecion para IA o Coop
     char board[6][7]; // Tablero de 6x7
@@ -24,7 +24,7 @@ private:
     int minimax(int depth, bool isMaximizingPlayer, int alpha, int beta); // Minimax con poda alfa-beta
     bool isMovesLeft();
     int findBestMove();
-    // Otros métodos que puedas necesitar
+    bool useAlphaBetaPruning;
 };
 
 #endif // CONNECT4_H

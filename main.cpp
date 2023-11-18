@@ -5,23 +5,29 @@
 void displayMenu();
 int getGameMode();
 int getDifficultyChoice();
+void displayMenu();
+int getGameMode();
+int getDifficultyChoice();
+
 int main() {
     displayMenu();
     int gameMode = getGameMode();
+    bool useAlphaBetaPruning = true; // Valor por defecto
 
     if (gameMode == 2) {
         int difficulty = getDifficultyChoice();
-        Connect4 game(gameMode, difficulty);
+        std::cout << "¿Activar poda alfa-beta? (1: Sí, 0: No): ";
+        std::cin >> useAlphaBetaPruning;
+
+        Connect4 game(gameMode, difficulty, useAlphaBetaPruning);
         game.playGame();
-    } 
-    else {
-        Connect4 game(gameMode);
+    } else {
+        Connect4 game(gameMode, 1, useAlphaBetaPruning); // La dificultad no importa en modo jugador vs jugador
         game.playGame();
     }
 
     return 0;
 }
-
 void displayMenu() {
     std::cout << "¡Bienvenido a Conecta 4!" << std::endl;
     std::cout << "1. Jugar contra otro jugador" << std::endl;
