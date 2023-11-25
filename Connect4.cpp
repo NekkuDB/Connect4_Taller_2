@@ -308,7 +308,12 @@ void Connect4::playGame() {
             currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
         }
     }
+
+    // Llamar a endGame para manejar el final del juego y luego mostrar el menú principal
+    endGame();
+    showMainMenu();
 }
+
 
 
 
@@ -363,28 +368,30 @@ void Connect4::endGame() {
     // ... código existente para finalizar el juego y guardar resultados ...
 
     // Mostrar opciones al usuario
-    std::cout << "Partida finalizada. Elige una opción:" << std::endl;
-    std::cout << "1. Volver a jugar" << std::endl;
-    std::cout << "2. Volver al menú principal" << std::endl;
 
     int choice;
-    std::cin >> choice;
+    do {
+        std::cout << "Partida finalizada. Elige una opción:" << std::endl;
+        std::cout << "1. Volver a jugar" << std::endl;
+        std::cout << "2. Volver al menú principal" << std::endl;
+        std::cout << "3. Salir" << std::endl;
+        std::cin >> choice;
 
-    switch (choice) {
-        case 1:
-            // Iniciar un nuevo juego
-            startNewGame();
-            break;
-        case 2:
-            // Regresar al menú principal
-            showMainMenu();
-            break;
-        default:
-            std::cout << "Opción no válida. Regresando al menú principal." << std::endl;
-            showMainMenu();
-    }
+        switch (choice) {
+            case 1:
+                startNewGame();
+                return; // Salir de endGame después de iniciar un nuevo juego
+            case 2:
+                showMainMenu();
+                return; // Salir de endGame después de mostrar el menú principal
+            case 3:
+                std::cout << "Saliendo del juego..." << std::endl;
+                return; // Salir del juego
+            default:
+                std::cout << "Opción no válida. Por favor, intenta de nuevo." << std::endl;
+        }
+    } while (choice != 3);
 }
-
 void Connect4::startNewGame() {
     // Reiniciar el tablero a su estado inicial (vacío)
     initializeBoard();
