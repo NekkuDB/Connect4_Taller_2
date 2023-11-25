@@ -16,6 +16,10 @@ std::string getCurrentDate() {
 
 void Resultados::writeResultToCSV(const std::string& filename, const GameResult& result) {
     std::ofstream file(filename, std::ios::app); // Abre el archivo en modo append
+    if (!file) {
+        std::cerr << "No se pudo abrir el archivo para escribir: " << filename << std::endl;
+        return;
+    }
 
     file << result.date << ","
          << result.moves << ","
@@ -25,17 +29,17 @@ void Resultados::writeResultToCSV(const std::string& filename, const GameResult&
          << (result.alphaBetaPruning ? "Sí" : "No") << ","
          << result.winner
          << "\n";
-
-    file.close();
 }
 
 void Resultados::readResultsFromCSV(const std::string& filename) {
     std::ifstream file(filename);
-    std::string line;
+    if (!file) {
+        std::cerr << "No se pudo abrir el archivo para leer: " << filename << std::endl;
+        return;
+    }
 
+    std::string line;
     while (std::getline(file, line)) {
         std::cout << line << std::endl;
     }
-
-    file.close();
 }
