@@ -12,7 +12,7 @@ struct GameResult {
     std::string difficulty;    // Dificultad del juego (si aplica)
     double executionTime;      // Tiempo de ejecución del juego
     bool alphaBetaPruning;     // Indica si se utilizó poda alfa-beta
-    char winner;               // Ganador del juego ('X', 'O', o algún otro indicador)
+    std::string winner;               // Ganador del juego ('X', 'O', o algún otro indicador)
 };
 
 class Resultados {

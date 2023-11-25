@@ -1,13 +1,17 @@
 // Connect4.cpp
 #include "Connect4.h"
 #include "GameState.h"
+#include "Resultados.h" 
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
+#include <iomanip>
 
 Connect4::Connect4(int gameMode, int difficulty, bool useAlphaBeta) 
-    : gameMode(gameMode), difficulty(difficulty), useAlphaBetaPruning(useAlphaBeta) {
+    : gameMode(gameMode), difficulty(difficulty), useAlphaBetaPruning(useAlphaBeta), currentPlayer('X'), movesCount(0) {
     initializeBoard();
+    startTime = std::chrono::system_clock::now(); // Iniciar el temporizador
 }
 
 
@@ -340,8 +344,204 @@ void Connect4::loadGame(const std::string& filename) {
     gameMode = gameState.gameMode;
     difficulty = gameState.difficulty;
     useAlphaBetaPruning = gameState.useAlphaBetaPruning;
+    
+    
 }
 
+void Connect4::endGame() {
+    endTime = std::chrono::system_clock::now();
+    GameResult result;
+    result.date = getCurrentDate();
+    result.moves = movesCount; // Asegúrate de que movesCount tenga el número correcto de movimientos
+    result.gameType = (gameMode == 1 ? "Player vs Player" : "Player vs AI");
+    result.difficulty = std::to_string(difficulty); // Asegúrate de que difficulty tenga el nivel de dificultad
+    result.executionTime = calculateExecutionTime(); // Implementa esta función según sea necesario
+    result.alphaBetaPruning = useAlphaBetaPruning;
+    result.winner = determineWinner(); // Implementa esta función para determinar el ganador
+    // Guardar el resultado en el archivo CSV
+    Resultados::writeResultToCSV("resultados.csv", result);
+    // ... código existente para finalizar el juego y guardar resultados ...
+
+    // Mostrar opciones al usuario
+    std::cout << "Partida finalizada. Elige una opción:" << std::endl;
+    std::cout << "1. Volver a jugar" << std::endl;
+    std::cout << "2. Volver al menú principal" << std::endl;
+
+    int choice;
+    std::cin >> choice;
+
+    switch (choice) {
+        case 1:
+            // Iniciar un nuevo juego
+            startNewGame();
+            break;
+        case 2:
+            // Regresar al menú principal
+            showMainMenu();
+            break;
+        default:
+            std::cout << "Opción no válida. Regresando al menú principal." << std::endl;
+            showMainMenu();
+    }
+}
+
+void Connect4::startNewGame() {
+    // Reiniciar el tablero a su estado inicial (vacío)
+    initializeBoard();
+
+    // Establecer el jugador inicial, por ejemplo, 'X'
+    currentPlayer = 'X';
+
+    // Reiniciar el contador de movimientos
+    movesCount = 0;
+
+    // Reiniciar el modo de juego y la dificultad si es necesario
+    // gameMode = ...; // Si deseas cambiar el modo de juego
+    // difficulty = ...; // Si deseas cambiar la dificultad
+
+    // Reiniciar el uso de poda alfa-beta si es necesario
+    // useAlphaBetaPruning = ...; // Si deseas cambiar esta configuración
+
+    // Iniciar el temporizador para el nuevo juego
+    startTime = std::chrono::system_clock::now();
+
+    // Mostrar el tablero inicial
+    displayBoard();
+
+    // Iniciar el juego
+    playGame();
+}
+
+
+void Connect4::showMainMenu() {
+    int choice = 0;
+
+    while (choice != 4) { // Suponiendo que 4 es la opción para salir
+        std::cout << "\n==== Menú Principal de Connect4 ====\n";
+        std::cout << "1. Jugar nuevo juego\n";
+        std::cout << "2. Cargar juego guardado\n";
+        std::cout << "3. Cambiar configuración\n";
+        std::cout << "4. Salir\n";
+        std::cout << "Elige una opción: ";
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                // Iniciar un nuevo juego
+                startNewGame();
+                break;
+            case 2:
+                // Cargar un juego guardado
+                {
+                    std::string filename;
+                    std::cout << "Ingresa el nombre del archivo para cargar: ";
+                    std::cin >> filename;
+                    loadGame(filename);
+                }
+                break;
+            case 3:
+                // Cambiar configuración (dificultad, modo de juego, etc.)
+                changeSettings();
+                break;
+            case 4:
+                std::cout << "Saliendo del juego...\n";
+                break;
+            default:
+                std::cout << "Opción no válida. Por favor, intenta de nuevo.\n";
+        }
+    }
+}
+
+void Connect4::changeSettings() {
+    int newGameMode, newDifficulty;
+    char useAlphaBetaChoice;
+
+    std::cout << "Configuración actual: " << std::endl;
+    std::cout << "Modo de juego: " << (gameMode == 1 ? "Jugador vs Jugador" : "Jugador vs IA") << std::endl;
+    std::cout << "Dificultad: " << difficulty << " (1=Fácil, 2=Medio, 3=Difícil)" << std::endl;
+    std::cout << "Poda alfa-beta: " << (useAlphaBetaPruning ? "Sí" : "No") << std::endl;
+
+    std::cout << "\nNueva configuración:" << std::endl;
+
+    // Cambiar modo de juego
+    std::cout << "Elige el modo de juego (1=Jugador vs Jugador, 2=Jugador vs IA): ";
+    std::cin >> newGameMode;
+    if (newGameMode == 1 || newGameMode == 2) {
+        gameMode = newGameMode;
+    } else {
+        std::cout << "Modo de juego no válido. Manteniendo configuración actual." << std::endl;
+    }
+
+    // Cambiar dificultad
+    std::cout << "Elige la dificultad (1=Fácil, 2=Medio, 3=Difícil): ";
+    std::cin >> newDifficulty;
+    if (newDifficulty >= 1 && newDifficulty <= 3) {
+        difficulty = newDifficulty;
+    } else {
+        std::cout << "Dificultad no válida. Manteniendo configuración actual." << std::endl;
+    }
+
+    // Cambiar uso de poda alfa-beta
+    std::cout << "¿Usar poda alfa-beta? (s/n): ";
+    std::cin >> useAlphaBetaChoice;
+    useAlphaBetaPruning = (useAlphaBetaChoice == 's' || useAlphaBetaChoice == 'S');
+}
+
+std::string Connect4::getCurrentDate() {
+    auto now = std::chrono::system_clock::now(); // Obtener el tiempo actual
+    auto in_time_t = std::chrono::system_clock::to_time_t(now); // Convertir a time_t
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d"); // Formatear la fecha
+    return ss.str(); // Devolver la fecha como string
+}
+
+long Connect4::calculateExecutionTime() {
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
+    return static_cast<long>(duration);
+}
+
+
+
+void Resultados::writeResultToCSV(const std::string& filename, const GameResult& result) {
+    std::ofstream file(filename, std::ios::app); // Abre el archivo en modo append
+    if (!file) {
+        std::cerr << "No se pudo abrir el archivo para escribir: " << filename << std::endl;
+        return;
+    }
+
+    file << result.date << ","
+         << result.moves << ","
+         << result.gameType << ","
+         << result.difficulty << ","
+         << result.executionTime << ","
+         << (result.alphaBetaPruning ? "Sí" : "No") << ","
+         << result.winner
+         << "\n";
+}
+
+void Resultados::readResultsFromCSV(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "No se pudo abrir el archivo para leer: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::cout << line << std::endl;
+    }
+}
+
+std::string Connect4::determineWinner() {
+    if (checkWin('X')) {
+        return "Jugador X";
+    } else if (checkWin('O')) {
+        return "Jugador O";
+    } else {
+        return "Empate";
+    }
+}
 
 
 // Otros métodos que puedas necesitar

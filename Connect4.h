@@ -2,6 +2,9 @@
 #define CONNECT4_H
 
 #include <string> // Para manejar strings
+#include "GameState.h"
+#include "Resultados.h" 
+#include <chrono>
 
 class Connect4 {
 public:
@@ -12,8 +15,19 @@ public:
     void setDifficulty(int level); // Establecer la dificultad del juego
     void saveGame(const std::string& filename); // Guardar el estado del juego
     void loadGame(const std::string& filename); // Cargar el estado del juego
+    void endGame();
+    void startNewGame();
+    void showMainMenu();
+    void changeSettings(); 
+
+    // Métodos adicionales
+    static std::string getCurrentDate(); // Obtener la fecha actual
+    long calculateExecutionTime(); // Calcular el tiempo de ejecución
+    std::string determineWinner(); // Determinar el ganador
+    
+
 private:
-    int gameMode; //Selecion para IA o Coop
+    int gameMode; // Selección para IA o Coop
     char board[6][7]; // Tablero de 6x7
     int difficulty; // Nivel de dificultad (1=fácil, 2=medio, 3=difícil)
     void initializeBoard(); // Inicializar el tablero
@@ -27,6 +41,7 @@ private:
     bool useAlphaBetaPruning;
     char currentPlayer; // Jugador actual ('X' o 'O')
     int movesCount; // Contador de movimientos
+    std::chrono::time_point<std::chrono::system_clock> startTime, endTime;
 };
 
 #endif // CONNECT4_H
