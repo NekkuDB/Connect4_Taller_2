@@ -1,3 +1,5 @@
+#include "Connect4.cpp"
+#include "GameState.cpp"
 #include "Connect4.h"
 #include <iostream>
 
