@@ -1,6 +1,9 @@
 // Connect4.cpp
 #include "Connect4.h"
+#include "GameState.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 Connect4::Connect4(int gameMode, int difficulty, bool useAlphaBeta) 
     : gameMode(gameMode), difficulty(difficulty), useAlphaBetaPruning(useAlphaBeta) {
@@ -251,6 +254,7 @@ void Connect4::playGame() {
     char currentPlayer = 'X'; // El jugador humano comienza
     bool gameEnded = false;
     int column;
+    std::string input; // Para manejar entradas del usuario
     int movesCount = 0; // Contador para el número total de movimientos
 
     while (!gameEnded && movesCount < 42) { // 6 filas * 7 columnas = 42 posiciones
@@ -258,13 +262,26 @@ void Connect4::playGame() {
 
         if (gameMode == 1 || (gameMode == 2 && currentPlayer == 'X')) {
             // Jugador humano
-            std::cout << "Jugador " << currentPlayer << ", elige una columna (0-6): ";
-            std::cin >> column;
-            if (column >= 0 && column < 7 && dropPiece(column, currentPlayer)) {
-                movesCount++;
+            std::cout << "Jugador " << currentPlayer << ", elige una columna (0-6) o escribe 'guardar' para guardar la partida: ";
+            std::cin >> input;
+
+            if (input == "guardar") {
+                std::string filename;
+                std::cout << "Ingresa el nombre del archivo para guardar: ";
+                std::cin >> filename;
+                saveGame(filename);
+                std::cout << "Partida guardada. Saliendo del juego..." << std::endl;
+                return; // Salir del juego después de guardar
             } else {
-                std::cout << "Movimiento inválido. Inténtalo de nuevo." << std::endl;
-                continue; // Salta al siguiente ciclo del bucle si el movimiento es inválido
+                // Convertir la entrada a un número de columna
+                std::stringstream ss(input);
+                ss >> column;
+
+                if (ss.fail() || column < 0 || column >= 7 || !dropPiece(column, currentPlayer)) {
+                    std::cout << "Movimiento inválido. Inténtalo de nuevo." << std::endl;
+                    continue; // Salta al siguiente ciclo del bucle si el movimiento es inválido
+                }
+                movesCount++;
             }
         } else if (gameMode == 2 && currentPlayer == 'O') {
             // IA (Minimax)
@@ -288,6 +305,43 @@ void Connect4::playGame() {
         }
     }
 }
+
+
+
+void Connect4::saveGame(const std::string& filename) {
+    // Preparar el estado del juego para guardar
+    GameState gameState;
+    // Copiar el tablero y otros estados relevantes a gameState
+    std::copy(&board[0][0], &board[0][0] + 6*7, &gameState.board[0][0]);
+    gameState.currentPlayer = currentPlayer;
+    gameState.movesCount = movesCount;
+    gameState.gameMode = gameMode;
+    gameState.difficulty = difficulty;
+    gameState.useAlphaBetaPruning = useAlphaBetaPruning;
+
+    // Guardar el estado del juego
+    GameStateHandler::saveGameState(filename, gameState);
+}
+
+void Connect4::loadGame(const std::string& filename) {
+    // Preparar un estado de juego para cargar
+    GameState gameState;
+
+    // Cargar el estado del juego
+    if (!GameStateHandler::loadGameState(filename, gameState)) {
+        std::cerr << "Error al cargar el juego." << std::endl;
+        return;
+    }
+
+    // Copiar el estado cargado al juego actual
+    std::copy(&gameState.board[0][0], &gameState.board[0][0] + 6*7, &board[0][0]);
+    currentPlayer = gameState.currentPlayer;
+    movesCount = gameState.movesCount;
+    gameMode = gameState.gameMode;
+    difficulty = gameState.difficulty;
+    useAlphaBetaPruning = gameState.useAlphaBetaPruning;
+}
+
 
 
 // Otros métodos que puedas necesitar

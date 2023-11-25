@@ -25,6 +25,8 @@ private:
     bool isMovesLeft();
     int findBestMove();
     bool useAlphaBetaPruning;
+    char currentPlayer; // Jugador actual ('X' o 'O')
+    int movesCount; // Contador de movimientos
 };
 
 #endif // CONNECT4_H
